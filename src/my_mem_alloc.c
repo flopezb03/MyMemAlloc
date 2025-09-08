@@ -91,3 +91,42 @@ void insert_header(header_t* new_header){
         tail->h.next = new_header;
     tail = new_header;
 }
+
+
+
+
+
+void my_free(void* ptr){
+    if(ptr == NULL)
+        return;
+
+    header_t* header = (header_t *) ptr;
+    header = header-1;
+
+    pthread_mutex_lock(&global_malloc_lock);
+
+    if(header == tail){
+        
+        sbreak(-(sizeof(header_t)+header->h.size));
+
+        if(header == head){
+            head = NULL;
+            tail = NULL;
+        }else{
+            header_t* it = head;
+            bool found = false;
+            while(!found){
+                if(it->h.next == header)
+                    found = true;
+                else
+                    it = it->h.next;
+            }
+            it->h.next = NULL
+            tail = it;
+        }
+    }else{
+        header->h.is_free = true;
+    }
+    pthread_mutex_unlock(&global_malloc_lock);
+}
+
