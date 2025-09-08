@@ -1,8 +1,11 @@
 #include "../include/my_mem_alloc.h"
 
+#include <unistd.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <string.h>
+#include <stdio.h>
 
 
 
@@ -37,7 +40,7 @@ void insert_header(header_t* new_header);
 
 
 
-void* my_malloc(size_t size){
+void* malloc(size_t size){
     if(size <= 0)
         return NULL;
 
@@ -51,8 +54,8 @@ void* my_malloc(size_t size){
         pthread_mutex_unlock(&global_malloc_lock);
         return (void *)(header+1);
     }
-
-    mem_block = sbreak(sizeof(header_t)+size);
+    
+    mem_block = sbrk(sizeof(header_t)+size);
     if(mem_block == (void *)-1){
         pthread_mutex_unlock(&global_malloc_lock);
         return NULL;
@@ -96,7 +99,7 @@ void insert_header(header_t* new_header){
 
 
 
-void my_free(void* ptr){
+void free(void* ptr){
     if(ptr == NULL)
         return;
 
@@ -107,7 +110,7 @@ void my_free(void* ptr){
 
     if(header == tail){
         
-        sbreak(-(sizeof(header_t)+header->h.size));
+        sbrk(0 - sizeof(header_t) - header->h.size);
 
         if(header == head){
             head = NULL;
@@ -121,7 +124,7 @@ void my_free(void* ptr){
                 else
                     it = it->h.next;
             }
-            it->h.next = NULL
+            it->h.next = NULL;
             tail = it;
         }
     }else{
@@ -134,14 +137,14 @@ void my_free(void* ptr){
 
 
 
-void* my_calloc(size_t nmemb, size_t size){
+void* calloc(size_t nmemb, size_t size){
     if(nmemb <= 0 || size <= 0)
-        return NULL
+        return NULL;
 
     size_t final_size = nmemb*size;
-    void* block = my_malloc(final_size);
+    void* block = malloc(final_size);
     if(block == NULL)
-        return NULL
+        return NULL;
     memset(block,0,final_size);
     return block;
 }
@@ -149,13 +152,13 @@ void* my_calloc(size_t nmemb, size_t size){
 
 
 
-void* my_realloc(void *ptr, size_t size){
+void* realloc(void *ptr, size_t size){
     if(ptr == NULL)
-        return my_malloc(size);
+        return malloc(size);
     if(size <= 0){
         if(size == 0)
-            my_free(ptr);
-        return NULL
+            free(ptr);
+        return NULL;
     }
 
     header_t* header = (header_t *) ptr-1;
@@ -163,11 +166,11 @@ void* my_realloc(void *ptr, size_t size){
     if(header->h.size >= size)
         return ptr;
 
-    void* new_block = my_malloc(size);
+    void* new_block = malloc(size);
     if(new_block == NULL)
         return NULL;
 
     memcpy(new_block, ptr, header->h.size);
-    my_free(ptr);
+    free(ptr);
     return new_block;
 }
