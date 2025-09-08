@@ -130,3 +130,14 @@ void my_free(void* ptr){
     pthread_mutex_unlock(&global_malloc_lock);
 }
 
+void* my_calloc(size_t nmemb, size_t size){
+    if(nmemb <= 0 || size <= 0)
+        return NULL
+
+    size_t final_size = nmemb*size;
+    void* block = my_malloc(final_size);
+    if(block == NULL)
+        return NULL
+    memset(block,0,final_size);
+    return block;
+}
