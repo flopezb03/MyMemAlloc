@@ -130,6 +130,10 @@ void my_free(void* ptr){
     pthread_mutex_unlock(&global_malloc_lock);
 }
 
+
+
+
+
 void* my_calloc(size_t nmemb, size_t size){
     if(nmemb <= 0 || size <= 0)
         return NULL
@@ -140,4 +144,30 @@ void* my_calloc(size_t nmemb, size_t size){
         return NULL
     memset(block,0,final_size);
     return block;
+}
+
+
+
+
+void* my_realloc(void *ptr, size_t size){
+    if(ptr == NULL)
+        return my_malloc(size);
+    if(size <= 0){
+        if(size == 0)
+            my_free(ptr);
+        return NULL
+    }
+
+    header_t* header = (header_t *) ptr-1;
+
+    if(header->h.size >= size)
+        return ptr;
+
+    void* new_block = my_malloc(size);
+    if(new_block == NULL)
+        return NULL;
+
+    memcpy(new_block, ptr, header->h.size);
+    my_free(ptr);
+    return new_block;
 }
