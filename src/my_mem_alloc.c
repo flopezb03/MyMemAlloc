@@ -1,4 +1,4 @@
-#include "../include/my_mem_alloc.h"
+#include "my_mem_alloc.h"
 
 #include <unistd.h>
 #include <stddef.h>
@@ -26,21 +26,22 @@ typedef union header_t{
 
 
 
-header_t *head, *tail;
-pthread_mutex_t global_malloc_lock;
+static header_t *head, *tail;
+static pthread_mutex_t global_malloc_lock;
 
 
 
 
 
-header_t* get_free_block(size_t size);
-void insert_header(header_t* new_header);
+static header_t* get_free_block(size_t size);
+static void insert_header(header_t* new_header);
 
 
 
 
 
 void* malloc(size_t size){
+    //write(2, "DEBUG: malloc called\n", 21);
     if(size <= 0)
         return NULL;
 
@@ -74,7 +75,7 @@ void* malloc(size_t size){
 
 
 
-header_t* get_free_block(size_t size){
+static header_t* get_free_block(size_t size){
     if(head == NULL)
         return NULL;
 
@@ -87,7 +88,7 @@ header_t* get_free_block(size_t size){
     return NULL;
 }
 
-void insert_header(header_t* new_header){
+static void insert_header(header_t* new_header){
     if(head == NULL)
         head = new_header;
     if(tail  != NULL)
@@ -100,6 +101,7 @@ void insert_header(header_t* new_header){
 
 
 void free(void* ptr){
+    //write(2, "DEBUG: free called\n", 19);
     if(ptr == NULL)
         return;
 
@@ -138,6 +140,7 @@ void free(void* ptr){
 
 
 void* calloc(size_t nmemb, size_t size){
+    //write(2, "DEBUG: calloc called\n", 21);
     if(nmemb <= 0 || size <= 0)
         return NULL;
 
@@ -153,6 +156,7 @@ void* calloc(size_t nmemb, size_t size){
 
 
 void* realloc(void *ptr, size_t size){
+    //write(2, "DEBUG: realloc called\n", 22);
     if(ptr == NULL)
         return malloc(size);
     if(size <= 0){
